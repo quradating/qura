@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Qura Secure Chat</title>
+    <style>
+        body { margin: 0; background: #010409; font-family: -apple-system, sans-serif; color: #e6edf3; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        #auth-overlay { position: fixed; inset: 0; background: #0d1117; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 20px; text-align: center; }
+        #pin-input { background: #161b22; border: 1px solid #30363d; color: white; padding: 15px; font-size: 24px; width: 120px; text-align: center; border-radius: 8px; letter-spacing: 5px; margin: 20px 0; outline: none; }
+        #pin-input:focus { border-color: #58a6ff; }
+        .btn { background: #238636; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn:hover { background: #2ea043; }
+        #messages { flex: 1; overflow-y: auto; padding: 15px; display: none; flex-direction: column; gap: 10px; background: #0d1117; }
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.4; }
+        .mine { align-self: flex-end; background: #238636; color: white; border-bottom-right-radius: 2px; }
+        .theirs { align-self: flex-start; background: #21262d; color: #e6edf3; border-bottom-left-radius: 2px; }
+        #input-area { padding: 10px; background: #161b22; display: none; gap: 10px; border-top: 1px solid #30363d; }
+        input#msg-text { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #30363d; background: #0d1117; color: white; outline: none; }
+        #header { padding: 10px 15px; background: #161b22; border-bottom: 1px solid #30363d; display: none; font-size: 14px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="auth-overlay">
+    <h2 id="auth-title" style="margin-bottom: 5px;">QURA SECURE</h2>
+    <p id="auth-desc" style="color: #8b949e; font-size: 14px; margin-top: 0;">Введіть 4 цифри для доступу</p>
+    <input type="password" id="pin-input" maxlength="4" placeholder="••••" inputmode="numeric">
+    <button class="btn" id="auth-btn">Підтвердити</button>
+    
+    <p style="margin-top: 25px; font-size: 12px; color: #8b949e;">
+        Забули PIN? <a href="mailto:quradating@gmail.com?subject=Reset Qura PIN" style="color: #58a6ff; text-decoration: none;">Напишіть нам</a>
+    </p>
+</div>
+
+<div id="header">Чат</div>
+<div id="messages"></div>
+
+<div id="input-area">
+    <input type="text" id="msg-text" placeholder="Напишіть повідомлення..." autocomplete="off">
+    <button id="send-btn" class="btn">Send</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where, orderBy, onSnapshot, limit, serverTimestamp } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // ТВІЙ КОНФІГ FIREBASE
+    const firebaseConfig = {
+        apiKey: "AIzaSyBQNxVaRBgyiM0oJJjzDJ5MJi1WBVPlsdI",
+        authDomain: "quradating777.firebaseapp.com",
+        projectId: "quradating777",
+        storageBucket: "quradating777.firebasestorage.app",
+        messagingSenderId: "723638199684",
+        appId: "1:723638199684:web:b00ea1895fd5b7ee63e9d1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const params = new URLSearchParams(window.location.search);
+    const myEmail = params.get('me');
+    const partnerEmail = params.get('partner');
+
+    const authBtn = document.getElementById('auth-btn');
+    const pinInput = document.getElementById('pin-input');
+
+    authBtn.onclick = async () => {
+        const pin = pinInput.value;
+        if (pin.length !== 4) return alert("Введіть рівно 4 цифри!");
+
+        const userRef = doc(db, "user_access", myEmail);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+            // Перший вхід: зберігаємо новий PIN
+            await setDoc(userRef, { pin: pin });
+            startChat();
+        } else {
+            // Перевірка існуючого PIN
+            if (userDoc.data().pin === pin) {
+                startChat();
+            } else {
+                alert("Неправильний PIN! Спробуйте ще раз.");
+                pinInput.value = '';
+            }
+        }
+    };
+
+    function startChat() {
+        document.getElementById('auth-overlay').style.display = 'none';
+        document.getElementById('messages').style.display = 'flex';
+        document.getElementById('input-area').style.display = 'flex';
+        document.getElementById('header').style.display = 'block';
+        document.getElementById('header').innerText = `Чат з ${partnerEmail}`;
+
+        const q = query(
+            collection(db, "messages"),
+            where("participants", "array-contains", myEmail),
+            orderBy("createdAt", "asc"),
+            limit(50)
+        );
+
+        onSnapshot(q, (snapshot) => {
+            const box = document.getElementById('messages');
+            box.innerHTML = '';
+            snapshot.forEach(d => {
+                const m = d.data();
+                if (m.participants.includes(partnerEmail)) {
+                    const div = document.createElement('div');
+                    div.className = `msg ${m.sender === myEmail ? 'mine' : 'theirs'}`;
+                    div.textContent = m.text;
+                    box.appendChild(div);
+                }
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    async function sendMsg() {
+        const inp = document.getElementById('msg-text');
+        const text = inp.value.trim();
+        if (!text) return;
+        
+        try {
+            await addDoc(collection(db, "messages"), {
+                text: text,
+                sender: myEmail,
+                participants: [myEmail, partnerEmail],
+                createdAt: serverTimestamp()
+            });
+            inp.value = '';
+        } catch (e) { console.error(e); }
+    }
+
+    document.getElementById('send-btn').onclick = sendMsg;
+    document.getElementById('msg-text').onkeypress = (e) => { if(e.key === 'Enter') sendMsg(); };
+</script>
+</body>
+</html>
