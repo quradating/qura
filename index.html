@@ -4,59 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Qura Chat</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-color: #0f0f0f; --header-bg: #1a1a1a; --my-msg: #005c4b; --their-msg: #202c33; --text-primary: #e9edef; --text-secondary: #8696a0; --accent: #00a884; }
-        body { margin: 0; background: var(--bg-color); font-family: 'Inter', sans-serif; color: var(--text-primary); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        #header { padding: 15px; background: var(--header-bg); border-bottom: 1px solid #2f3b43; font-weight: 600; text-align: center; font-size: 16px; letter-spacing: 0.5px; z-index: 10; }
-        #messages { flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 8px; background-image: url("https://i.imgur.com/8T42g6c.png"); background-blend-mode: soft-light; }
+        :root {
+            --bg-color: #000000;
+            --header-bg: rgba(20, 20, 20, 0.95);
+            --input-bg: #1a1a1a;
+            --my-msg-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --their-msg-bg: #27272a;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg-color); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text-primary); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        /* ВЕРХНЯ ПАНЕЛЬ (КЛІКАБЕЛЬНА) */
+        #header {
+            padding: 10px 15px;
+            background: var(--header-bg);
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+            cursor: pointer; /* Показує, що можна клікнути */
+            transition: background 0.2s;
+        }
+        #header:active { background: #333; }
+
+        /* Кнопка НАЗАД */
+        .back-btn {
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            padding-right: 5px;
+        }
+
+        .avatar-circle {
+            width: 38px; height: 38px;
+            background: linear-gradient(45deg, #ff00cc, #333399);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 16px; text-transform: uppercase;
+        }
+
+        .user-info { display: flex; flex-direction: column; }
+        .user-name { font-weight: 600; font-size: 16px; }
+        .user-status { font-size: 12px; color: #6366f1; } /* Статус зробив кольоровим */
+
+        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
         .msg-row { display: flex; width: 100%; }
-        .msg { max-width: 75%; padding: 8px 12px; border-radius: 16px; font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+        .msg { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.5; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .mine { justify-content: flex-end; }
-        .mine .msg { background: var(--my-msg); border-bottom-right-radius: 4px; }
+        .mine .msg { background: var(--my-msg-gradient); color: white; border-bottom-right-radius: 4px; }
         .theirs { justify-content: flex-start; }
-        .theirs .msg { background: var(--their-msg); border-bottom-left-radius: 4px; }
-        .msg img { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; cursor: pointer; }
-        .time { font-size: 10px; color: var(--text-secondary); text-align: right; margin-top: 4px; display: block; opacity: 0.8; }
+        .theirs .msg { background: var(--their-msg-bg); color: var(--text-primary); border-bottom-left-radius: 4px; }
+        .msg img { max-width: 100%; border-radius: 12px; margin-top: 8px; display: block; cursor: pointer; }
+        .time { font-size: 10px; text-align: right; margin-top: 5px; opacity: 0.7; display: block; }
+
+        #input-area { padding: 15px; background: var(--header-bg); border-top: 1px solid #333; display: flex; align-items: flex-end; gap: 10px; }
+        .input-wrapper { flex: 1; background: var(--input-bg); border-radius: 25px; padding: 8px 15px; display: flex; align-items: center; border: 1px solid #333; }
+        input[type="text"] { flex: 1; background: transparent; border: none; color: white; font-size: 16px; outline: none; }
+        .icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; }
+        button#send-btn { background: var(--my-msg-gradient); width: 45px; height: 45px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         
-        #input-area { padding: 10px; background: var(--header-bg); display: flex; align-items: flex-end; gap: 10px; border-top: 1px solid #2f3b43; }
-        .icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 10px; transition: 0.2s; }
-        .icon-btn:hover { color: var(--accent); }
-        .input-wrapper { flex: 1; background: #2a3942; border-radius: 24px; padding: 2px 15px; display: flex; align-items: center; }
-        input[type="text"] { flex: 1; padding: 10px 5px; border: none; background: none; color: var(--text-primary); outline: none; font-size: 15px; max-height: 100px; overflow-y: auto; }
-        button#send { background: var(--accent); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        #loader { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20, 20, 20, 0.9); padding: 20px; border-radius: 15px; z-index: 100; text-align: center; }
+        .spinner { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #6366f1; animation: spin 1s ease-in-out infinite; margin: 0 auto 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
-        #file-input { display: none; }
-        #loader { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 12px; z-index: 100; text-align: center; backdrop-filter: blur(5px); }
-        
-        /* Модальне вікно для перегляду фото */
-        #img-viewer { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; align-items: center; justify-content: center; }
-        #img-viewer img { max-width: 95%; max-height: 95%; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        #close-viewer { position: absolute; top: 20px; right: 20px; color: white; font-size: 30px; cursor: pointer; background: none; border: none; }
+        #img-viewer { display: none; position: fixed; inset: 0; background: black; z-index: 200; align-items: center; justify-content: center; }
+        #img-viewer img { max-width: 100%; max-height: 100%; }
+        #close-viewer { position: absolute; top: 20px; right: 20px; color: white; font-size: 30px; cursor: pointer; background: rgba(255,255,255,0.1); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-<div id="header">Завантаження...</div>
+<div id="header">
+    <div class="back-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </div>
+    <div class="avatar-circle" id="avatar-char"></div>
+    <div class="user-info">
+        <div class="user-name" id="chat-title">...</div>
+        <div class="user-status">Переглянути профіль</div>
+    </div>
+</div>
+
 <div id="messages"></div>
-<div id="loader">Processing Image...<br><span style="font-size:12px; opacity:0.7">Стискаємо 15MB -> 50KB</span></div>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <div style="font-size: 14px;">Фото летить...</div>
+</div>
 
 <div id="img-viewer" onclick="this.style.display='none'">
-    <button id="close-viewer">&times;</button>
+    <div id="close-viewer">&times;</div>
     <img id="viewer-img" src="">
 </div>
 
 <div id="input-area">
-    <button class="icon-btn" onclick="document.getElementById('file-input').click()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+    <button class="icon-btn" id="attach-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
     </button>
-    <input type="file" id="file-input" accept="image/*">
-
+    <input type="file" id="file-input" accept="image/*" style="display: none;">
     <div class="input-wrapper">
-        <input type="text" id="msg-input" placeholder="Повідомлення" autocomplete="off">
+        <input type="text" id="msg-input" placeholder="Повідомлення..." autocomplete="off">
     </div>
-    <button id="send">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    <button id="send-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
 </div>
 
@@ -65,6 +121,7 @@
     import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, limit, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // --- НАЛАШТУВАННЯ ---
     const firebaseConfig = {
         apiKey: "AIzaSyBQNxVaRBgyiM0oJJjzDJ5MJi1WBVPlsdI",
         authDomain: "quradating777.firebaseapp.com",
@@ -74,21 +131,45 @@
         appId: "1:723638199684:web:b00ea1895fd5b7ee63e9d1"
     };
 
+    // --- ВАЖЛИВО: ВСТАВ ТУТ СВОЄ ПОСИЛАННЯ НА СТОРІНКУ ПРОФІЛЮ В SOFTR ---
+    // Наприклад: "https://your-app.softr.app/user-profile"
+    // Важливо: без "recordId", ми його додамо самі.
+    const SOFTR_PROFILE_BASE_URL = "https://quradating.softr.app/user-profile"; 
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     const params = new URLSearchParams(window.location.search);
     const myEmail = params.get('me');
     const partnerEmail = params.get('partner');
+    const partnerId = params.get('pid'); // Отримуємо ID партнера з Softr
+
+    const chatTitle = document.getElementById('chat-title');
+    const avatarChar = document.getElementById('avatar-char');
     const msgBox = document.getElementById('messages');
+    const loader = document.getElementById('loader');
+    const fileInput = document.getElementById('file-input');
 
     if (!myEmail || !partnerEmail) {
-        document.getElementById('header').innerText = "Помилка";
-        msgBox.innerHTML = '<div style="text-align:center; padding:20px; color:#ff4444">Відкрийте через додаток</div>';
+        chatTitle.innerText = "Помилка";
     } else {
-        document.getElementById('header').innerText = partnerEmail.split('@')[0];
+        const name = partnerEmail.split('@')[0];
+        chatTitle.innerText = name.charAt(0).toUpperCase() + name.slice(1);
+        avatarChar.innerText = name.charAt(0).toUpperCase();
         initChat();
     }
+
+    // --- ЛОГІКА ПЕРЕХОДУ НА ПРОФІЛЬ ---
+    document.getElementById('header').onclick = () => {
+        if (partnerId && SOFTR_PROFILE_BASE_URL) {
+            // Формуємо посилання назад на Softr
+            // recordId - це стандартний параметр Softr для відкриття конкретного запису
+            const url = `${SOFTR_PROFILE_BASE_URL}?recordId=${partnerId}`;
+            window.location.href = url;
+        } else {
+            console.log("Немає ID партнера або URL профілю");
+        }
+    };
 
     function initChat() {
         const q = query(
@@ -103,36 +184,35 @@
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 if (data.participants.includes(partnerEmail)) {
-                    const row = document.createElement('div');
-                    row.className = `msg-row ${data.sender === myEmail ? 'mine' : 'theirs'}`;
-                    
-                    let content = '';
-                    if (data.imageUrl) {
-                        // Додаємо onClick для відкриття фото на весь екран
-                        content = `<img src="${data.imageUrl}" onclick="window.openImage(this.src)" alt="image">`;
-                        if (data.text) content += `<div style="margin-top:5px">${data.text}</div>`;
-                    } else {
-                        content = data.text;
-                    }
-
-                    const time = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-                    row.innerHTML = `<div class="msg">${content}<span class="time">${time}</span></div>`;
-                    msgBox.appendChild(row);
+                    renderMessage(data);
                 }
             });
             msgBox.scrollTop = msgBox.scrollHeight;
         });
 
-        document.getElementById('send').onclick = sendMessage;
-        document.getElementById('msg-input').onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
-        document.getElementById('file-input').onchange = handleFileUpload;
+        document.getElementById('send-btn').onclick = sendMessage;
+        document.getElementById('msg-input').onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
+        document.getElementById('attach-btn').onclick = () => fileInput.click();
+        fileInput.onchange = handleFileUpload;
     }
 
-    // Глобальна функція для відкриття фото
-    window.openImage = (src) => {
-        document.getElementById('viewer-img').src = src;
-        document.getElementById('img-viewer').style.display = 'flex';
-    };
+    function renderMessage(data) {
+        const row = document.createElement('div');
+        row.className = `msg-row ${data.sender === myEmail ? 'mine' : 'theirs'}`;
+        
+        let content = '';
+        if (data.imageUrl) {
+            // Клік на фото відкриває перегляд, А НЕ ПРОФІЛЬ (це стандарт)
+            content = `<img src="${data.imageUrl}" onclick="event.stopPropagation(); window.viewImage('${data.imageUrl}')">`;
+            if (data.text) content += `<div style="margin-top:8px">${data.text}</div>`;
+        } else {
+            content = data.text;
+        }
+
+        const time = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+        row.innerHTML = `<div class="msg">${content}<span class="time">${time}</span></div>`;
+        msgBox.appendChild(row);
+    }
 
     async function sendMessage() {
         const input = document.getElementById('msg-input');
@@ -142,13 +222,11 @@
         input.value = '';
     }
 
-    // --- ГОЛОВНА ФУНКЦІЯ СТИСНЕННЯ ---
     function handleFileUpload(e) {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Показуємо лоадер
-        document.getElementById('loader').style.display = 'block';
+        loader.style.display = 'block';
 
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -157,11 +235,7 @@
             img.src = event.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                
-                // 1. НАЛАШТУВАННЯ РОЗМІРУ
-                // Ми обмежуємо ширину до 800 пікселів. 
-                // Висота підлаштується автоматично, щоб фото не сплюснуло.
-                const MAX_WIDTH = 800; 
+                const MAX_WIDTH = 600; 
                 let width = img.width;
                 let height = img.height;
 
@@ -169,33 +243,22 @@
                     height *= MAX_WIDTH / width;
                     width = MAX_WIDTH;
                 }
-
                 canvas.width = width;
                 canvas.height = height;
-
-                // 2. МАЛЮЄМО ФОТО НА КАНВАСІ (ЗМЕНШЕНЕ)
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.5); 
 
-                // 3. ЕКСПОРТУЄМО В JPEG З ЯКІСТЮ 60%
-                // Це перетворить 15 МБ на 50-80 КБ
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.6); 
-
-                // Перевірка розміру (про всяк випадок, якщо файл все одно величезний)
-                if (dataUrl.length > 900000) { // 900 КБ ліміт
-                     alert("Фото занадто складне навіть після стиснення. Спробуйте інше.");
-                     document.getElementById('loader').style.display = 'none';
+                if (dataUrl.length > 800000) {
+                     alert("Фото занадто велике.");
+                     loader.style.display = 'none';
                      return;
                 }
                 
-                // 4. ВІДПРАВЛЯЄМО В БАЗУ
                 pushToFirebase({ text: '', imageUrl: dataUrl });
-                
-                // Прибираємо лоадер і очищаємо інпут
-                document.getElementById('loader').style.display = 'none';
                 e.target.value = '';
             }
-        }
+        };
     }
 
     async function pushToFirebase(data) {
@@ -206,11 +269,17 @@
                 participants: [myEmail, partnerEmail],
                 createdAt: serverTimestamp()
             });
+            loader.style.display = 'none';
         } catch (e) { 
-            document.getElementById('loader').style.display = 'none';
-            alert("Помилка відправки: " + e.message); 
+            loader.style.display = 'none';
+            alert("Помилка: " + e.message); 
         }
     }
+
+    window.viewImage = (src) => {
+        document.getElementById('viewer-img').src = src;
+        document.getElementById('img-viewer').style.display = 'flex';
+    };
 </script>
 </body>
 </html>
