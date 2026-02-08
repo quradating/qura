@@ -8,10 +8,10 @@
     <style>
         :root {
             --bg-color: #000000;
-            --header-bg: rgba(18, 18, 18, 0.95);
+            --header-bg: rgba(18, 18, 18, 0.98);
             --input-bg: #1a1a1a;
             --brand-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            --coin-gradient: linear-gradient(135deg, #ffd700 0%, #f59e0b 100%);
+            --coin-color: #f59e0b;
             --text-primary: #ffffff;
             --text-secondary: #a1a1aa;
             --app-max-width: 600px; 
@@ -33,26 +33,43 @@
             #app-container { max-width: var(--app-max-width); border-left: 1px solid #222; border-right: 1px solid #222; }
         }
 
-        /* --- HEADER & CHAT --- */
+        /* --- HEADER --- */
         #header {
-            padding: 12px 16px; background: var(--header-bg); border-bottom: 1px solid #222;
+            padding: 10px 12px; background: var(--header-bg); border-bottom: 1px solid #222;
             display: flex; align-items: center; justify-content: space-between;
             z-index: 50; position: absolute; top: 0; left: 0; right: 0; backdrop-filter: blur(10px);
         }
-        .header-left { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .back-btn { color: var(--text-secondary); display: flex; align-items: center; padding: 5px; margin-left: -5px; }
+        .header-left { display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; overflow: hidden; }
+        .back-btn { color: var(--text-secondary); display: flex; align-items: center; padding: 5px; }
         .avatar-circle {
-            width: 36px; height: 36px; background: linear-gradient(45deg, #ff00cc, #333399);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;
+            width: 34px; height: 34px; background: linear-gradient(45deg, #ff00cc, #333399);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;
         }
-        .user-info { display: flex; flex-direction: column; }
-        .user-name { font-weight: 600; font-size: 15px; }
+        .user-info { display: flex; flex-direction: column; overflow: hidden; }
+        .user-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-status { font-size: 11px; color: #6366f1; }
-        
-        .report-btn { color: var(--text-secondary); background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
+        .header-actions { display: flex; align-items: center; gap: 5px; }
+        
+        /* Кнопки в хедері */
+        .header-btn {
+            width: 34px; height: 34px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+            background: rgba(255,255,255,0.05); color: var(--text-secondary); transition: 0.2s;
+        }
+        .header-btn:active { transform: scale(0.9); }
+        
+        /* Кнопка аналізу профілю (Фіолетова пульсація) */
+        #profile-ai-btn { color: #8b5cf6; position: relative; }
+        @keyframes pulse-purple {
+            0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+        }
+        .pulse-purple { animation: pulse-purple 2s infinite; }
+
+        /* --- CHAT --- */
         #messages {
-            flex: 1; overflow-y: auto; padding: 15px; padding-top: 75px; padding-bottom: 80px;
+            flex: 1; overflow-y: auto; padding: 15px; padding-top: 70px; padding-bottom: 75px;
             display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth;
         }
         .msg-row { display: flex; width: 100%; }
@@ -63,100 +80,105 @@
         .theirs .msg { background: #27272a; color: white; border-bottom-left-radius: 2px; }
         .msg img { max-width: 100%; border-radius: 12px; margin-top: 5px; }
 
-        /* --- INPUT --- */
+        /* --- INPUT (Виправлено накладання) --- */
         #input-area {
-            padding: 10px 12px; padding-bottom: max(10px, env(safe-area-inset-bottom));
+            padding: 8px 10px; padding-bottom: max(8px, env(safe-area-inset-bottom));
             background: var(--header-bg); border-top: 1px solid #222;
-            display: flex; align-items: center; gap: 10px; position: absolute; bottom: 0; left: 0; right: 0; z-index: 50;
+            display: flex; align-items: center; gap: 8px; /* Менший відступ */
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 50;
         }
+        
+        /* Input wrapper тепер стискається */
         .input-wrapper {
-            flex: 1; background: var(--input-bg); border-radius: 24px; padding: 8px 15px;
-            display: flex; align-items: center; border: 1px solid #333; min-height: 44px;
+            flex: 1; background: var(--input-bg); border-radius: 24px; padding: 8px 12px;
+            display: flex; align-items: center; border: 1px solid #333; min-height: 40px;
+            min-width: 0; /* Критично важливо для flex-shrink! */
         }
-        input[type="text"] { flex: 1; background: transparent; border: none; color: white; font-size: 16px; outline: none; }
-        .icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; }
+        input[type="text"] { flex: 1; background: transparent; border: none; color: white; font-size: 16px; outline: none; min-width: 0; }
+        
+        .icon-btn { 
+            background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 6px; 
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; /* Не стискати кнопку */
+        }
         
         button#send-btn {
-            background: var(--brand-gradient); width: 42px; height: 42px; border-radius: 50%; border: none;
+            background: var(--brand-gradient); width: 38px; height: 38px; border-radius: 50%; border: none;
             display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
 
-        /* --- НОВА МАГІЧНА КНОПКА (Mystic Sparkles) --- */
-        #ai-btn { color: #f59e0b; position: relative; overflow: visible; }
-        
-        @keyframes magic-pulse {
+        /* Кнопка Chat AI (Золота пульсація) */
+        #chat-ai-btn { color: #f59e0b; }
+        @keyframes pulse-gold {
             0% { filter: drop-shadow(0 0 0px rgba(245, 158, 11, 0)); transform: scale(1); }
-            50% { filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.8)); transform: scale(1.1); }
+            50% { filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.6)); transform: scale(1.05); }
             100% { filter: drop-shadow(0 0 0px rgba(245, 158, 11, 0)); transform: scale(1); }
         }
-        .magic-active { animation: magic-pulse 3s infinite ease-in-out; }
+        .pulse-gold { animation: pulse-gold 3s infinite ease-in-out; }
 
-        /* --- SHOP MODAL (Магазин Монет) --- */
+        /* --- PROMO MODALS (Презентація) --- */
         .overlay {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200;
-            backdrop-filter: blur(8px); align-items: center; justify-content: center;
+            backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;
         }
         
-        /* Стиль магазину */
-        .shop-container {
-            width: 90%; max-width: 400px; background: #121212; border-radius: 24px; border: 1px solid #333;
-            padding: 25px; display: flex; flex-direction: column; gap: 15px; position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        .promo-card {
+            width: 100%; max-width: 380px; background: #121212; border-radius: 24px; border: 1px solid #333;
+            padding: 30px 25px; display: flex; flex-direction: column; align-items: center; text-align: center;
+            position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.6); animation: zoomIn 0.2s;
         }
-        .shop-header { text-align: center; margin-bottom: 10px; }
-        .shop-title { font-size: 22px; font-weight: 800; color: white; margin-bottom: 5px; letter-spacing: 0.5px; }
-        .shop-subtitle { color: #888; font-size: 14px; }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .promo-icon { font-size: 40px; margin-bottom: 15px; }
+        .promo-title { font-size: 20px; font-weight: 800; color: white; margin-bottom: 10px; }
+        .promo-text { color: #aaa; font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
         
-        /* Картки товарів */
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .promo-bullets { text-align: left; width: 100%; margin-bottom: 25px; background: #1a1a1a; padding: 15px; border-radius: 12px; }
+        .bullet { display: flex; gap: 10px; font-size: 13px; color: #ccc; margin-bottom: 8px; }
+        .bullet:last-child { margin-bottom: 0; }
+
+        .action-button {
+            width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 16px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: transform 0.1s;
+        }
+        .action-button:active { transform: scale(0.95); }
         
+        .btn-gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: black; }
+        .btn-purple { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; }
+
+        .close-promo { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #555; font-size: 24px; cursor: pointer; }
+
+        /* --- SHOP MODAL --- */
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; width: 100%; margin: 20px 0; }
         .coin-card {
             background: #1e1e1e; border: 1px solid #333; border-radius: 16px; padding: 15px 5px;
-            text-align: center; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
+            text-align: center; cursor: pointer; position: relative; overflow: hidden;
         }
-        .coin-card:active { transform: scale(0.95); }
-        
-        /* Виділена картка (Best Value) */
         .card-popular { border: 1px solid #f59e0b; background: linear-gradient(180deg, #2a1f00 0%, #1e1e1e 100%); }
-        .badge {
-            position: absolute; top: 0; left: 0; width: 100%; background: #f59e0b; color: black;
-            font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 0;
-        }
+        .badge { position: absolute; top: 0; left: 0; width: 100%; background: #f59e0b; color: black; font-size: 8px; font-weight: 800; padding: 2px 0; }
         
-        .cc-icon { font-size: 24px; margin-bottom: 8px; display: block; }
-        .cc-amount { font-size: 14px; font-weight: 700; color: white; display: block; }
-        .cc-price { font-size: 12px; color: #aaa; margin-top: 4px; display: block; }
+        /* SVG Icons for Coins */
+        .svg-coin { width: 24px; height: 24px; margin-bottom: 5px; fill: #f59e0b; }
+        .svg-diamond { width: 24px; height: 24px; margin-bottom: 5px; fill: #0ea5e9; }
+        
+        .cc-amount { font-size: 13px; font-weight: 700; color: white; display: block; }
+        .cc-price { font-size: 11px; color: #aaa; margin-top: 4px; display: block; }
 
-        .close-shop { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #666; font-size: 24px; cursor: pointer; }
-
-        /* --- MENU OVERLAY (Вибір функції) --- */
-        .bottom-sheet {
-            width: 100%; max-width: var(--app-max-width); margin: 0 auto;
-            background: #18181b; border-top-left-radius: 24px; border-top-right-radius: 24px;
-            padding: 25px 20px; display: flex; flex-direction: column; gap: 12px;
-            border-top: 1px solid #333; animation: slideUp 0.3s ease-out; position: absolute; bottom: 0;
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .action-btn {
-            background: #27272a; color: white; padding: 16px; border-radius: 16px; border: 1px solid #333;
-            font-size: 16px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
-        }
-        .action-btn:active { background: #333; transform: scale(0.98); }
-        .price-pill { background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; border: 1px solid rgba(245, 158, 11, 0.3); }
-
-        /* --- OTHER MODALS --- */
+        /* --- OTHER --- */
         #ai-result-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
         .ai-res-card { background: #151515; width: 100%; max-width: 500px; border-radius: 20px; padding: 25px; border: 1px solid #333; max-height: 80vh; overflow-y: auto; color: #eee; }
-        
         #loader { display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 15px; z-index: 500; text-align: center; border: 1px solid #333; width: 150px; }
         .spinner { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.2); border-radius: 50%; border-top-color: #f59e0b; animation: spin 1s infinite linear; margin: 0 auto 10px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        #report-overlay { display: none; z-index: 400; align-items: center; justify-content: center; }
-        .report-card { background: #1a1a1a; width: 90%; max-width: 350px; border-radius: 20px; padding: 20px; border: 1px solid #333; }
+        /* Report */
+        .report-card { background: #1a1a1a; width: 100%; max-width: 350px; border-radius: 20px; padding: 20px; border: 1px solid #333; }
         .report-option { padding: 15px; border-bottom: 1px solid #333; cursor: pointer; color: #ddd; display: flex; justify-content: space-between; }
+        
+        /* Viewer */
+        #img-viewer { display: none; position: fixed; inset: 0; background: black; z-index: 600; align-items: center; justify-content: center; }
+        #img-viewer img { max-width: 100%; max-height: 100%; }
+        #close-viewer { position: absolute; top: 20px; right: 20px; color: white; background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -168,7 +190,16 @@
             <div class="avatar-circle" id="avatar-char"></div>
             <div class="user-info"><div class="user-name" id="chat-title">...</div><div class="user-status">Переглянути профіль</div></div>
         </div>
-        <button class="report-btn" onclick="openReportMenu()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></button>
+        
+        <div class="header-actions">
+            <button class="header-btn pulse-purple" id="profile-ai-btn" onclick="openPromo('profile')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M20 12h2"/><path d="M2 12h2"/></svg>
+            </button>
+            
+            <button class="header-btn" onclick="openReportMenu()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </button>
+        </div>
     </div>
     
     <div id="messages"></div>
@@ -176,13 +207,8 @@
     <div id="input-area">
         <button class="icon-btn" id="attach-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
         
-        <button class="icon-btn magic-active" id="ai-btn" onclick="openAIMenu()">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z" opacity="0.3" fill="#f59e0b" stroke="none"></path>
-                <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                <path d="M12 4v2" /><path d="M12 18v2" /><path d="M4 12h2" /><path d="M18 12h2" />
-                <path d="m4.9 4.9 1.4 1.4" /><path d="m17.7 17.7 1.4 1.4" /><path d="m4.9 19.1 1.4-1.4" /><path d="m17.7 6.3 1.4-1.4" />
-            </svg>
+        <button class="icon-btn pulse-gold" id="chat-ai-btn" onclick="openPromo('chat')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
         </button>
         
         <input type="file" id="file-input" accept="image/*" style="display: none;">
@@ -191,59 +217,71 @@
     </div>
 </div>
 
-<div id="ai-menu-overlay" class="overlay">
-    <div class="bottom-sheet">
-        <div class="menu-header">
-            <span>Qura AI</span>
-            <span style="font-size:14px; color:#f59e0b;">Баланс: <span id="user-balance">0</span> 🪙</span>
-        </div>
+<div id="promo-profile" class="overlay">
+    <div class="promo-card">
+        <button class="close-promo" onclick="closeOverlays()">&times;</button>
+        <div class="promo-icon">🧠</div>
+        <div class="promo-title">Психологічний Портрет</div>
+        <div class="promo-text">ШІ проаналізує кожну деталь профілю та фото, щоб розкрити характер людини.</div>
         
-        <div class="action-btn" onclick="useService('chat', 1)">
-            <div style="display:flex; align-items:center;"><span style="font-size:22px; margin-right:12px;">🧠</span> Аналіз діалогу</div>
-            <div class="price-pill">1 Coin</div>
-        </div>
-        
-        <div class="action-btn" onclick="useService('profile', 2)">
-            <div style="display:flex; align-items:center;"><span style="font-size:22px; margin-right:12px;">🕵️‍♂️</span> Аналіз профілю</div>
-            <div class="price-pill">2 Coins</div>
+        <div class="promo-bullets">
+            <div class="bullet">✅ Приховані риси характеру</div>
+            <div class="bullet">✅ Теми, які її точно зачеплять</div>
+            <div class="bullet">🚩 "Червоні прапорці" (Red Flags)</div>
         </div>
 
-        <button style="background:none; border:none; color:#666; padding:10px; cursor:pointer;" onclick="closeOverlays()">Закрити</button>
+        <button class="action-button btn-purple" onclick="useService('profile', 2)">
+            Аналізувати за 2 <svg class="svg-coin" style="width:16px; height:16px; margin:0; fill:white;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+        </button>
+    </div>
+</div>
+
+<div id="promo-chat" class="overlay">
+    <div class="promo-card">
+        <button class="close-promo" onclick="closeOverlays()">&times;</button>
+        <div class="promo-icon">✨</div>
+        <div class="promo-title">Ідеальна Відповідь</div>
+        <div class="promo-text">Не знаєш, що написати? Qura AI проаналізує діалог і згенерує відповідь, яка гарантовано спрацює.</div>
+        
+        <div class="promo-bullets">
+            <div class="bullet">🚀 Підвищує шанс на побачення</div>
+            <div class="bullet">💡 Розуміє підтекст повідомлень</div>
+            <div class="bullet">✍️ Пише за тебе</div>
+        </div>
+
+        <button class="action-button btn-gold" onclick="useService('chat', 1)">
+            Отримати пораду за 1 <svg class="svg-coin" style="width:16px; height:16px; margin:0; fill:black;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+        </button>
     </div>
 </div>
 
 <div id="shop-overlay" class="overlay">
-    <div class="shop-container">
-        <button class="close-shop" onclick="closeOverlays()">&times;</button>
-        <div class="shop-header">
-            <div class="shop-title">Поповнити баланс</div>
-            <div class="shop-subtitle">Оберіть пакет монет</div>
-        </div>
+    <div class="promo-card">
+        <button class="close-promo" onclick="closeOverlays()">&times;</button>
+        <div class="promo-title">Поповнити баланс</div>
+        <div class="promo-text" style="margin-bottom:10px;">У вас: <b style="color:#f59e0b" id="shop-balance">0</b> Coins</div>
         
         <div class="shop-grid">
             <div class="coin-card" onclick="buyCoins(1)">
-                <span class="cc-icon">🪙</span>
+                <svg class="svg-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M12 6a4 4 0 0 1 0 12" stroke="black" stroke-width="2" fill="none"/></svg>
                 <span class="cc-amount">1 Coin</span>
                 <span class="cc-price">65 грн</span>
             </div>
             
             <div class="coin-card card-popular" onclick="buyCoins(5)">
                 <div class="badge">ХІТ</div>
-                <span class="cc-icon">💰</span>
+                <svg class="svg-coin" viewBox="0 0 24 24"><path d="M4 18h16M4 14h16M4 10h16M4 6h16" stroke="#f59e0b" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#f59e0b"/></svg>
                 <span class="cc-amount">5 Coins</span>
                 <span class="cc-price">270 грн</span>
             </div>
             
             <div class="coin-card" onclick="buyCoins(10)">
-                <span class="cc-icon">💎</span>
+                <svg class="svg-diamond" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9z"/></svg>
                 <span class="cc-amount">10 Coins</span>
                 <span class="cc-price">500 грн</span>
             </div>
         </div>
-        
-        <div style="text-align:center; font-size:12px; color:#666; margin-top:10px;">
-            Оплата безпечна та миттєва.
-        </div>
+        <div style="font-size:11px; color:#666;">Безпечна оплата через Stripe / Apple Pay</div>
     </div>
 </div>
 
@@ -253,7 +291,6 @@
         <div class="report-option" onclick="submitReport('spam')"><span>Спам / Реклама</span><span>🚩</span></div>
         <div class="report-option" onclick="submitReport('fake')"><span>Фейковий профіль</span><span>🎭</span></div>
         <div class="report-option" onclick="submitReport('insult')"><span>Образи / Грубість</span><span>🤬</span></div>
-        <div class="report-option" onclick="submitReport('scam')"><span>Шахрайство</span><span>💸</span></div>
         <button style="width:100%; background:#333; color:white; border:none; padding:12px; border-radius:10px; margin-top:15px; cursor:pointer;" onclick="closeOverlays()">Скасувати</button>
     </div>
 </div>
@@ -267,11 +304,10 @@
     import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, limit, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // === ВАЖЛИВО! ПОСИЛАННЯ НА ОПЛАТУ (СТВОРИ ЦІ СТОРІНКИ В SOFTR АБО STRIPE) ===
+    // --- ПОСИЛАННЯ НА ОПЛАТУ (ВСТАВ ТУТ СВОЇ З SOFTR) ---
     const BUY_LINK_1 = "https://quradating.softr.app/buy-1-coin"; 
     const BUY_LINK_5 = "https://quradating.softr.app/buy-5-coins";
     const BUY_LINK_10 = "https://quradating.softr.app/buy-10-coins";
-    
     const SOFTR_PROFILE_URL = "https://quradating.softr.app/user-profile"; 
 
     const firebaseConfig = {
@@ -290,7 +326,7 @@
     const myEmail = params.get('me');
     const partnerEmail = params.get('partner');
     const partnerId = params.get('pid');
-    let userCoins = parseInt(params.get('coins')) || 0; // БАЛАНС
+    let userCoins = parseInt(params.get('coins')) || 0;
 
     const chatTitle = document.getElementById('chat-title');
     const avatarChar = document.getElementById('avatar-char');
@@ -302,48 +338,38 @@
         avatarChar.innerText = name.charAt(0).toUpperCase();
         initChat();
     }
-
+    
+    // Перехід на профіль при кліку на ХЕДЕР
     document.getElementById('profile-link').onclick = () => { if (partnerId) window.location.href = `${SOFTR_PROFILE_URL}?recordId=${partnerId}`; };
 
-    // --- ФУНКЦІОНАЛ ---
-    window.openAIMenu = () => {
-        document.getElementById('user-balance').innerText = userCoins;
-        document.getElementById('ai-menu-overlay').style.display = 'flex';
+    // --- ФУНКЦІОНАЛ ІНТЕРФЕЙСУ ---
+    window.openPromo = (type) => {
+        if(type === 'profile') document.getElementById('promo-profile').style.display = 'flex';
+        if(type === 'chat') document.getElementById('promo-chat').style.display = 'flex';
     };
 
-    window.closeOverlays = () => {
-        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
-    };
-    
+    window.closeOverlays = () => { document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none'); };
     window.openReportMenu = () => document.getElementById('report-overlay').style.display = 'flex';
 
-    // ГОЛОВНА ЛОГІКА ПОКУПКИ
     window.useService = (type, cost) => {
         closeOverlays();
-        
         if (userCoins >= cost) {
-            // Є ГРОШІ -> СПИСУЄМО І ПОКАЗУЄМО
-            userCoins -= cost;
-            // Тут треба оновити баланс в базі (поки імітація)
+            userCoins -= cost; // Імітація списання
             runAISimulation(type);
         } else {
-            // НЕМА ГРОШЕЙ -> МАГАЗИН
+            document.getElementById('shop-balance').innerText = userCoins;
             document.getElementById('shop-overlay').style.display = 'flex';
         }
     };
 
     window.buyCoins = (amount) => {
-        let url = "";
-        if(amount === 1) url = BUY_LINK_1;
-        if(amount === 5) url = BUY_LINK_5;
-        if(amount === 10) url = BUY_LINK_10;
-        
+        let url = (amount === 1) ? BUY_LINK_1 : (amount === 5) ? BUY_LINK_5 : BUY_LINK_10;
         window.open(url, '_blank');
-        // Коли користувач повернеться, баланс має оновитися (Softr перезавантажить чат)
     };
     
-    window.submitReport = (r) => { closeOverlays(); alert("Скаргу відправлено."); };
+    window.submitReport = () => { closeOverlays(); alert("Скаргу відправлено."); };
 
+    // --- ЛОГІКА ЧАТУ ---
     function initChat() {
         const q = query(collection(db, "messages"), where("participants", "array-contains", myEmail), orderBy("createdAt", "asc"), limit(50));
         onSnapshot(q, (snapshot) => {
@@ -414,8 +440,8 @@
             document.getElementById('loader').style.display = 'none';
             document.getElementById('ai-result-modal').style.display = 'flex';
             const text = document.getElementById('ai-text');
-            if(type === 'chat') text.innerHTML = "<b>Аналіз діалогу:</b><br>Співрозмовник відповідає коротко. Потрібно більше емоцій. <br><br>💡 <b>Порада:</b> Запитай про її хобі або плани на вихідні.";
-            else text.innerHTML = "<b>Аналіз профілю:</b><br>Людина активна, любить спорт.<br><br>💡 <b>Як почати:</b> Напиши 'Привіт! Класні фото з гір, давно захоплюєшся хайкінгом?'";
+            if(type === 'chat') text.innerHTML = "<b>Аналіз діалогу:</b><br><br>Діалог розвивається повільно. Вона відповідає, але не ініціює.<br><br>💡 <b>Порада:</b> Спробуй розсмішити її. Напиши: 'Я тільки що бачив кота, який схожий на тебе...'";
+            else text.innerHTML = "<b>Аналіз профілю:</b><br><br>Вона явно інтроверт, цінує книги та затишок.<br><br>💡 <b>Як підійти:</b> Запитай про останню книгу, яку вона прочитала.";
         }, 1500);
     }
 
